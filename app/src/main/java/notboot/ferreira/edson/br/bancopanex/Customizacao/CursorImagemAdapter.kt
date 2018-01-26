@@ -5,7 +5,6 @@ package notboot.ferreira.edson.br.bancopanex.Customizacao
  */
 import android.content.Context
 import android.database.Cursor
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.support.v4.widget.CursorAdapter
 import android.util.Base64
@@ -37,7 +36,7 @@ class CursorImagemAdapter(context: Context, cursor: Cursor) : CursorAdapter(cont
             val myBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString!!.size)
 
             if (myBitmap != null) {
-                image.setImageBitmap(Bitmap.createScaledBitmap(myBitmap, 800, 800, true))
+                image.setImageBitmap(myBitmap)
                 descricao.text = cursor.getString(1)
 
             }

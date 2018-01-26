@@ -4,22 +4,22 @@ import Permissoes.BuscaPermissoes
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.os.Handler
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_main.view.*
 import notboot.ferreira.edson.br.bancopanex.CacheBD.CriaBanco
-import notboot.ferreira.edson.br.bancopanex.CacheBD.ManipulaBanco
 import notboot.ferreira.edson.br.bancopanex.R
+import notboot.ferreira.edson.br.bancopanex.Sincronização.SincronizaJogos
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
+
 
     //Criando/ Abrindo o banco de dados para cache
     val NomeBanco:String = "BancoPanEx"
     var Banco: SQLiteDatabase? = null
-    val m = ManipulaBanco()
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
 
-        activity_main.setOnRefreshListener()
+        swGrid.setOnRefreshListener(this)
 
 
 
@@ -44,7 +44,9 @@ class MainActivity : AppCompatActivity() {
         var c = CriaBanco()
         if(c.criaBanco(Banco)) {
 
-            m.InsereBanco((Banco as SQLiteDatabase?)!!,gListaTopGames,applicationContext)
+
+            SincronizaJogos((Banco as SQLiteDatabase?)!!,gListaTopGames!!,applicationContext!!,swGrid!!).execute()
+
 
         }
 
@@ -52,15 +54,14 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    override fun onRefresh() {
+        var c = CriaBanco()
+        if(c.criaBanco(Banco)) {
 
-}
+        SincronizaJogos(Banco!!,gListaTopGames,applicationContext,swGrid).execute()
+        }
 
-private fun SwipeRefreshLayout.setOnRefreshListener() {
-
-        Handler().postDelayed({
-           // m.InsereBanco((Banco as SQLiteDatabase?)!!,gListaTopGames,applicationContext)
-            activity_main.isRefreshing = false }, 5000)
-
+    }
 }
 
 

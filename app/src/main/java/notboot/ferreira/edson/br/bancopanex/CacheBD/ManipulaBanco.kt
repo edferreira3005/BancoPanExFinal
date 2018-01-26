@@ -1,17 +1,12 @@
 package notboot.ferreira.edson.br.bancopanex.CacheBD
 
 import android.content.Context
-import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.Bitmap
 import android.util.Base64
-import android.view.View
-import android.widget.*
-import notboot.ferreira.edson.br.bancopanex.Customizacao.CursorImagemAdapter
 import notboot.ferreira.edson.br.bancopanex.Internet.ConexaoUrls
 import notboot.ferreira.edson.br.bancopanex.Internet.Download
-import notboot.ferreira.edson.br.bancopanex.Telas.InfoGames
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -23,14 +18,17 @@ import java.io.ByteArrayOutputStream
 class ManipulaBanco {
     var idt:Int = 0
 
-    fun InsereBanco(BancoDeDados: SQLiteDatabase , g:ListView, c:Context){
+    fun InsereBanco(BancoDeDados: SQLiteDatabase , c:Context) :Boolean{
 
         try {
 
         val ar = ConexaoUrls()
         //Se conectando com meu ID ao Twitch
         val jsonStr = ar.chamadaGet("https://api.twitch.tv/kraken/games/top?limit=100&client_id=6b6l8pfhm2oec7dngvdjw95l5tffq3")
-
+            var byteArrayOutputStream : ByteArrayOutputStream?
+            var imgb: Bitmap?
+            var byteArray1 : ByteArray?
+            var img64 : String?
 
             val jsonObj = JSONObject(jsonStr)
             if(jsonObj.length() > 0) {
@@ -51,13 +49,14 @@ class ManipulaBanco {
                     var imgjs = JSONObject(ja.getString("logo"))
 
                     var down = Download()
-                    var imgb: Bitmap = down.getBitmapFromURL(imgjs.getString("medium").trim())!!
-                    var byteArrayOutputStream = ByteArrayOutputStream()
+                    imgb = down.getBitmapFromURL(imgjs.getString("large").trim())!!
+                    byteArrayOutputStream = ByteArrayOutputStream()
 
                     imgb.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-                    var byteArray1 = byteArrayOutputStream.toByteArray()
 
-                    var img64 = Base64.encodeToString(byteArray1, Base64.DEFAULT)
+                    byteArray1 = byteArrayOutputStream.toByteArray()
+
+                    img64 = Base64.encodeToString(byteArray1, Base64.DEFAULT)
 
 
 
@@ -68,15 +67,17 @@ class ManipulaBanco {
                     BancoDeDados.execSQL(SQL)
 
 
-
+                    byteArrayOutputStream = null
+                    imgb = null
+                    byteArray1 = null
+                    img64 = null
 
                 }
 
-
+                return true
             }else{
 
-                Toast.makeText(c, "Falha na Internet",
-                        Toast.LENGTH_SHORT).show()
+               return true
 
             }
 
@@ -85,82 +86,11 @@ class ManipulaBanco {
 
         } catch (e: JSONException) {
             e.printStackTrace()
-            Toast.makeText(c, "Falha na Internet",
-                    Toast.LENGTH_SHORT).show()
+
+            return true
         }
 
-        val cursor: Cursor
 
-        cursor = BancoDeDados.rawQuery("SELECT " +
-                "                            A._id," +
-                "                            NOME_JOGO, " +
-                "                            IMG_JOGO " +
-                "                        FROM " +
-                "                           JOGO_TOP A" +
-                "                        ORDER " +
-                "                            BY A._id", null)
-
-        if (cursor.getCount() > 0) {
-
-
-            var AdapterImagem = CursorImagemAdapter(c, cursor)
-
-            g.setAdapter(AdapterImagem)
-
-
-            g.onItemClickListener = object : AdapterView.OnItemClickListener {
-
-
-                override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-
-
-                    idt = position
-                    c.startActivity(Intent(c, InfoGames::class.java))
-
-                }
-            }
-
-        }
-
-    }
-
-    fun SelectTop100(g:GridView, BancoDeDados: SQLiteDatabase, c:Context): Boolean {
-
-        val cursor: Cursor
-
-        cursor = BancoDeDados.rawQuery("SELECT " +
-                "                            A._id," +
-                "                            NOME_JOGO, " +
-                "                            IMG_JOGO " +
-                "                        FROM " +
-                "                           JOGO_TOP A" +
-                "                        ORDER " +
-                "                            BY A._id", null)
-
-        val coluna = arrayOf("IMG_JOGO", "NOME_JOGO")
-        val AdapterLista: SimpleCursorAdapter
-
-        if (cursor.getCount() > 0) {
-
-
-            var AdapterImagem = CursorImagemAdapter(c, cursor)
-
-            g.setAdapter(AdapterImagem);
-            g.onItemClickListener = object : AdapterView.OnItemClickListener {
-
-
-                override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-
-                    idt = position
-                    c.startActivity(Intent(c, InfoGames::class.java))
-
-                }
-            }
-
-
-
-        }
-        return true
 
     }
 
@@ -178,7 +108,7 @@ class ManipulaBanco {
                 "                        FROM " +
                 "                           JOGO_TOP A" +
                 "                        WHERE " +
-                "                             A._id = '" + id_jogo + "'" +
+                "                             A._id = " + id_jogo +
                 "                        ORDER " +
                 "                            BY A._id", null)
 
