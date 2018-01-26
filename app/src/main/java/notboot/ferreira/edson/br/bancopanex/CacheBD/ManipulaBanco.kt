@@ -77,7 +77,7 @@ class ManipulaBanco {
                 return true
             }else{
 
-               return true
+               return false
 
             }
 
@@ -87,7 +87,7 @@ class ManipulaBanco {
         } catch (e: JSONException) {
             e.printStackTrace()
 
-            return true
+            return false
         }
 
 
